@@ -43,7 +43,12 @@ app.use(express.static("public"));
 
 app.get("/", (req, res) => {
   Item.find({}, (err, result) => {
-    res.render("list", { result: result, listTitle: "Today" });
+    if (result.length === 0) {
+      Item.insertMany(defaultItems);
+      res.redirect("/");
+    } else {
+      res.render("list", { result: result, listTitle: "Today" });
+    }
   });
 });
 
@@ -86,7 +91,7 @@ app.post("/", (req, res) => {
 
 app.post("/delete", (req, res) => {
   if (req.body.listT === "Today") {
-    Item.findById(req.body.checkbox, (err) => {
+    Item.deleteOne({ _id: req.body.checkbox }, (err) => {
       if (err) {
         console.log(err);
       }

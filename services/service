@@ -15,75 +15,57 @@ const item3 = new Item({
 });
 const defaultItems = [item1, item2, item3];
 
-const getMainPage = (req, res) => {
-  Item.find({}, (err, result) => {
-    if (result.length === 0) {
-      Item.insertMany(defaultItems);
-      res.redirect("/");
-    } else {
-      res.render("list", { result: result, listTitle: "Today" });
-    }
-  });
-};
-
-const getSpecificPage = (req, res) => {
-  List.findOne(
-    { name: _.capitalize(req.params.direction) },
-    (err, foundList) => {
-      if (err) {
-        console.log(err);
-      }
-      if (!foundList) {
-        new List({
-          name: _.capitalize(req.params.direction),
-          list: defaultItems,
-        }).save(() => {
-          res.redirect("/" + _.capitalize(req.params.direction));
-        });
-      } else {
-        res.render("list", {
-          listTitle: _.capitalize(req.params.direction),
-          result: foundList.list,
-        });
-      }
-    }
-  );
-};
-
-const postItem = (req, res) => {
-  if (req.body.button === "Today") {
-    new Item({ name: req.body.newItem }).save();
-    res.redirect("/");
+const getMainPageService = async () => {
+  const result = await Item.find({});
+  if (result.length === 0) {
+    Item.insertMany(defaultItems);
+    return false;
   } else {
-    List.findOne({ name: req.body.button }, (err, r) => {
-      r.list.push(new Item({ name: req.body.newItem }));
-      r.save();
-      res.redirect("/" + req.body.button);
-    });
+    return result;
   }
 };
 
-const deleteItem = (req, res) => {
-  if (req.body.listT === "Today") {
-    Item.deleteOne({ _id: req.body.checkbox }, (err) => {
-      if (err) {
-        console.log(err);
-      }
-      res.redirect("/");
-    });
+const getSpecificPageService = async (listName) => {
+  const foundItem = await List.findOne({ name: _.capitalize(listName) });
+  if (!foundItem) {
+    new List({
+      name: _.capitalize(listName),
+      list: defaultItems,
+    }).save();
+    return false;
+  } else {
+    return foundItem;
+  }
+};
+
+const postItemService = async (listName, newItemText) => {
+  if (listName === "Today") {
+    new Item({ name: newItemText }).save();
+    return false;
+  } else {
+    const specificList = await List.findOne({ name: listName });
+    specificList.list.push(new Item({ name: newItemText }));
+    specificList.save();
+    return specificList;
+  }
+};
+
+const deleteItemService = (listName, itemId) => {
+  if (listName === "Today") {
+    Item.deleteOne({ _id: itemId }).exec();
+    return false;
   } else {
     List.findOneAndUpdate(
-      { name: req.body.listT },
-      { $pull: { list: { _id: req.body.checkbox } } },
-      (err, foundList) => {
-        if (err) {
-          console.log(err);
-        } else {
-          res.redirect("/" + _.capitalize(req.body.listT));
-        }
-      }
-    );
+      { name: listName },
+      { $pull: { list: { _id: itemId } } }
+    ).exec();
+    return true;
   }
 };
 
-module.exports = { getMainPage, getSpecificPage, postItem, deleteItem };
+module.exports = {
+  getMainPageService,
+  getSpecificPageService,
+  postItemService,
+  deleteItemService,
+};

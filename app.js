@@ -6,7 +6,7 @@ const {
   getSpecificPage,
   postItem,
   deleteItem,
-} = require("./services/service");
+} = require("./controller/controller.js");
 
 connectDB();
 

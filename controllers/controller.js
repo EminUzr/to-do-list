@@ -1,5 +1,3 @@
-const { Item } = require("../models/model.item");
-const List = require("../models/model.list.js");
 const _ = require("lodash");
 const {
   getMainPageService,
@@ -9,11 +7,11 @@ const {
 } = require("../services/service");
 
 const getMainPage = async (req, res) => {
-  const items = await getMainPageService();
-  if (items === false) {
+  const result = await getMainPageService();
+  if (result === false) {
     res.redirect("/");
   } else {
-    res.render("list", { result: items, listTitle: "Today" });
+    res.render("list", { result: result, listTitle: "Today" });
   }
 };
 

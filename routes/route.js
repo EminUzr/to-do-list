@@ -6,7 +6,7 @@ const {
   getSpecificPage,
   postItem,
   deleteItem,
-} = require("../controller/controller.js");
+} = require("../controllers/controller.js");
 
 router.get("/", getMainPage);
 
